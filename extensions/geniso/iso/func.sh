@@ -146,7 +146,7 @@ luet_box_install() {
 
   # XXX: This is temporarly needed until we fix override from CLI of --system-target
   #      and the --system-dbpath options
-  cat <<EOF > "$rootfs/luet.yaml"
+  cat <<EOF >> "$rootfs/luet.yaml"
 system:
   rootfs: "$rootfs"
   database_engine: "boltdb"
@@ -213,7 +213,7 @@ luet_install() {
 
   # XXX: This is temporarly needed until we fix override from CLI of --system-target
   #      and the --system-dbpath options
-  cat <<EOF > "$rootfs/luet.yaml"
+  cat <<EOF >> "$rootfs/luet.yaml"
 system:
   rootfs: "/"
   database_engine: "boltdb"
