@@ -138,7 +138,7 @@ luet_box_install() {
   # Create a valid FS structure in order to boot
   # we shouldn't really care to do this here, but let packages instead create those on need.
   # we do this here just for safety (who on earth would create a non-bootable ISO?)
-  for d in "/dev" "/sys" "/proc" "/tmp" "/dev/pt" "/run" "/var/lock" "/luetdb" "/etc"; do
+  for d in "/dev" "/sys" "/proc" "/tmp" "/dev/pts" "/run" "/var/lock" "/luetdb" "/etc"; do
     mkdir -p ${rootfs}${d} || true
   done
 
@@ -205,7 +205,7 @@ luet_install() {
   # Create a valid FS structure in order to boot
   # we shouldn't really care to do this here, but let packages instead create those on need.
   # we do this here just for safety (who on earth would create a non-bootable ISO?)
-  for d in "/dev" "/sys" "/proc" "/tmp" "/dev/pt" "/run" "/var/lock" "/luetdb" "/etc"; do
+  for d in "/dev" "/sys" "/proc" "/tmp" "/dev/pts" "/run" "/var/lock" "/luetdb" "/etc"; do
     mkdir -p ${rootfs}${d} || true
   done
 
