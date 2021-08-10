@@ -165,12 +165,12 @@ repositories:
 EOF
 
   # Required to connect to remote repositories
-  if [ ! -f "etc/resolv.conf" ]; then
-    echo "nameserver 8.8.8.8" > etc/resolv.conf
+  if [ ! -f "$rootfs/etc/resolv.conf" ]; then
+    echo "nameserver 8.8.8.8" > $rootfs/etc/resolv.conf
   fi
-  if [ ! -f "etc/ssl/certs/ca-certificates.crt" ]; then
-    mkdir -p etc/ssl/certs
-    cp -rfv "${CA_CERTIFICATES}" etc/ssl/certs
+  if [ ! -f "$rootfs/etc/ssl/certs/ca-certificates.crt" ]; then
+    mkdir -p $rootfs/etc/ssl/certs
+    cp -rfv "${CA_CERTIFICATES}" $rootfs/etc/ssl/certs
   fi
 
   cp -rfv ${LUET_BIN} $rootfs/luet
