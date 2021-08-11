@@ -87,6 +87,12 @@ github.com/Luet-lab/luet-portage-converter v0.4.2-0.20210614171737-514587a5cb02 
 github.com/Luet-lab/luet-portage-converter v0.4.2-0.20210614171737-514587a5cb02/go.mod h1:qCc5BZs45XUl0cBtq/RUwP1bYfWGRUIHcnNseRWsYhI=
 github.com/Luet-lab/luet-portage-converter v0.4.2-0.20210615073113-0b4d20ace46f h1:Sft4XFDb87bIdzDwzUe7PenH739mKKxMPkx3zb/o2xs=
 github.com/Luet-lab/luet-portage-converter v0.4.2-0.20210615073113-0b4d20ace46f/go.mod h1:qCc5BZs45XUl0cBtq/RUwP1bYfWGRUIHcnNseRWsYhI=
+github.com/Luet-lab/luet-portage-converter v0.4.2-0.20210620161920-3996607ffd46 h1:Ul+tayPuvd4MkYJNofSDf//2tncw0ZOMsOUmgB6I/H0=
+github.com/Luet-lab/luet-portage-converter v0.4.2-0.20210620161920-3996607ffd46/go.mod h1:qCc5BZs45XUl0cBtq/RUwP1bYfWGRUIHcnNseRWsYhI=
+github.com/Luet-lab/luet-portage-converter v0.4.2-0.20210811063341-21afc7836f0b h1:VhnPvRdm783y04OEtCc3fknkLF4qmopoIYRMn7uAEzo=
+github.com/Luet-lab/luet-portage-converter v0.4.2-0.20210811063341-21afc7836f0b/go.mod h1:qCc5BZs45XUl0cBtq/RUwP1bYfWGRUIHcnNseRWsYhI=
+github.com/Luet-lab/luet-portage-converter v0.4.2-0.20210811064616-ed4133e4bdd6 h1:ROj3a36AKzbn8PzOW7gfiirTMOqfIiGrl+rLc93XlSA=
+github.com/Luet-lab/luet-portage-converter v0.4.2-0.20210811064616-ed4133e4bdd6/go.mod h1:qCc5BZs45XUl0cBtq/RUwP1bYfWGRUIHcnNseRWsYhI=
 github.com/Luet-lab/moby v17.12.0-ce-rc1.0.20200605210607-749178b8f80d+incompatible h1:YddBuPhhRLoz7uhSJ3Zm//e62jQeTW/qXEZrk5I4qsk=
 github.com/Luet-lab/moby v17.12.0-ce-rc1.0.20200605210607-749178b8f80d+incompatible/go.mod h1:/XyFFC7lL96pE2kKmar2jd4LKxWzy1MmbiDHV0nK3bU=
 github.com/MakeNowJust/heredoc v0.0.0-20170808103936-bb23615498cd/go.mod h1:64YHyfSL2R96J44Nlwm39UHepQbyR5q10x7iYa1ks2E=

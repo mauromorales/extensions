@@ -13,7 +13,7 @@ replace github.com/jaguilar/vt100 => github.com/tonistiigi/vt100 v0.0.0-20190402
 replace github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.0-rc9.0.20200221051241-688cf6d43cc4
 
 require (
-	github.com/Luet-lab/luet-portage-converter v0.4.2-0.20210615073113-0b4d20ace46f
+	github.com/Luet-lab/luet-portage-converter v0.4.2-0.20210811064616-ed4133e4bdd6
 	github.com/MottainaiCI/mottainai-server v0.0.2-0.20210531211337-27f12a56ea5f
 	github.com/geaaru/time-master v0.3.1
 	github.com/jaypipes/ghw v0.6.1 // indirect
