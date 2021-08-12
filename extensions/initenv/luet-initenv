@@ -111,9 +111,9 @@ create-repo:
     --name \"${LUET_REPO_NAME}\" \\
     --descr \"${LUET_REPO_DESCR} \$(ARCH)\" \\
     --urls \"http://localhost:8000\" \\
-    --tree-compression gzip \\
+    --tree-compression \$(COMPRESSION) \\
     --tree-filename tree.tar \\
-    --meta-compression gzip \\
+    --meta-compression \$(COMPRESSION) \\
     --type http
 
 .PHONY: serve-repo
@@ -196,9 +196,9 @@ create-repo:
     --name \"${LUET_REPO_NAME}\" \\
     --descr \"${LUET_REPO_DESCR} \$(ARCH)\" \\
     --urls \"http://localhost:8000\" \\
-    --tree-compression gzip \\
+    --tree-compression \$(COMPRESSION) \\
     --tree-filename tree.tar \\
-    --meta-compression gzip \\
+    --meta-compression \$(COMPRESSION) \\
     --type http
 
 .PHONY: serve-repo
