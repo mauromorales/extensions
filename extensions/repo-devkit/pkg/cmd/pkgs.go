@@ -80,6 +80,7 @@ func NewPkgsCommand() *cobra.Command {
 			minioRegion, _ := cmd.Flags().GetString("minio-region")
 
 			jsonOutput, _ := cmd.Flags().GetBool("json")
+			limit, _ := cmd.Flags().GetInt32("limit")
 
 			if specsFile == "" {
 				s = specs.NewLuetRDConfig()
@@ -170,6 +171,19 @@ func NewPkgsCommand() *cobra.Command {
 				}
 			}
 
+			if limit > 0 {
+				newList := []*luet_pkg.DefaultPackage{}
+				for _, p := range list {
+					newList = append(newList, p)
+					limit -= 1
+					if limit <= 0 {
+						break
+					}
+				}
+
+				list = newList
+			}
+
 			if jsonOutput {
 
 				listSanitized := []*luet_spectooling.DefaultPackageSanitized{}
@@ -220,6 +234,7 @@ func NewPkgsCommand() *cobra.Command {
 	flags.Bool("build-ordered-with-resolve", false,
 		"Use stage4 tree resolving. Slow. To use with --build-ordered.")
 	flags.Bool("json", false, "Show packages in JSON format.")
+	flags.Int32P("limit", "l", 0, "Limit number of packages returned. 0 means no limit.")
 
 	return cmd
 }
