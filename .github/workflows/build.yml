@@ -22,3 +22,8 @@ jobs:
       uses: actions/checkout@v2
     - name: Build
       run: sudo -E env "PATH=$PATH" make install
+    - name: Tests
+      run: |
+        sudo rm $(which yq)  # need to clean the old yq available in the workers
+        sudo -E env "PATH=$PATH" make install_luet  # some extensions use luet (i.e. autobump-github) for testing
+        make test

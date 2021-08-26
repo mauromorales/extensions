@@ -1,9 +1,15 @@
 #!/bin/bash
-#set -ex
+#set -e
 # Auto bumper script by Ettore Di Giacinto <mudler@sabayonlinux.org>
 # License: MIT
 # Requires yq and jq
 # It bumps to latest tag annotated in the specs
+
+FAIL_ON_ERROR="${FAIL_ON_ERROR:-false}"
+
+if [[ $FAIL_ON_ERROR == "true" ]]; then
+  set -e
+fi
 
 # Options
 AUTO_GIT="${AUTO_GIT:-false}"
