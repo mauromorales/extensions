@@ -132,13 +132,13 @@ template_string() {
         fi
 
         if [[ "$subkey" == "null" ]]; then 
-            v=$(yq r $def "$key")
-            string=$(echo "$string" | sed "s/{{.Values.$key}}/$v/g")
-        else 
-            v=$(yq r $def ${key}.\"${subkey}\")
-            string=$(echo "$string" | sed "s/{{.Values.$key.$subkey}}/$v/g")
+            v=$(yq r $def "${YQ_ARGS}$key")
+            string=$(echo "$string" | sed "s@{{.Values.$key}}@$v@g")
+        else
+            v=$(yq r $def ${YQ_ARGS}${key}.\"${subkey}\")
+            string=$(echo "$string" | sed "s@{{.Values.$key.$subkey}}@$v@g")
         fi
-    done <<< $(yq r $def -j | jq -cr '. as $data |
+    done <<< $(yq r $def "${YQ_ARGS}" -j | jq -cr '. as $data |
     paths(scalars) | . as $path | "\($path[0]) \($path[1]) \($data | getpath($path) | tostring)"')
     echo $string
 }
