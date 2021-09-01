@@ -9,6 +9,7 @@ FAIL_ON_ERROR="${FAIL_ON_ERROR:-false}"
 
 if [[ $FAIL_ON_ERROR == "true" ]]; then
   set -e
+  set -o pipefail
 fi
 
 # Options
@@ -137,7 +138,7 @@ template_string() {
             continue
         fi
 
-        if [[ "$subkey" == "null" ]]; then 
+        if [[ "$subkey" == "null" ]]; then
             v=$(yq r $def "${YQ_ARGS}$key")
             string=$(echo "$string" | sed "s@{{.Values.$key}}@$v@g")
         else
@@ -332,6 +333,10 @@ for i in $(echo "$PKG_LIST" | jq -rc '.packages[]'); do
             GIT_BRANCH="${GIT_BRANCH:-master}"
             SHA=$(curl -H "Authorization: token $TOKEN" https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/git/refs/heads/$GIT_BRANCH -s | jq -r '.object.sha')
             yq w -i $DEFINITION_FILE "${YQ_ARGS}labels.\"git.hash\"" "$SHA" --style double
+        fi
+
+        if [[ "$AUTOBUMP_STRATEGY" == "github_tag" ]]; then
+          yq w -i $DEFINITION_FILE "${YQ_ARGS}labels.\"github.tag\"" "$ORIGINAL_NEW_TAG" --style double
         fi
 
         if [ -n "$CHECKSUM_HOOK" ]; then
