@@ -14,6 +14,8 @@ fi
 
 # Options
 AUTO_GIT="${AUTO_GIT:-false}"
+GIT_SIGNOFF=${GIT_SIGNOFF:-false}
+GIT_COMMIT_ARGS=${GIT_COMMIT_ARGS:-}
 
 TOKEN="${TOKEN:-}" # e.g. -H "Authorization: token TOKEN"
 START_GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
@@ -21,6 +23,10 @@ HUB_ARGS="${HUB_ARGS:--b $START_GIT_BRANCH}"
 ROOT_DIR="${ROOT_DIR:-$PWD}"
 TREE_DIR="${TREE_DIR:-$ROOT_DIR/packages}"
 PKGAPI="${PKGAPI:-https://pkgapi.herokuapp.com}"
+
+if [[ "${AUTO_GIT}" == "true" ]] && [[ "${GIT_SIGNOFF}" == "true" ]]; then
+  GIT_COMMIT_ARGS="-s"
+fi
 
 funnyQuote() {
     messageQuote=(
@@ -110,7 +116,7 @@ reverse_bump() {
 
     if [ "${AUTO_GIT}" == "true" ]; then
         git add $path/
-        git commit -m "reverse dep: bump $i for $PACKAGE_CATEGORY/$PACKAGE_NAME"
+        git commit $GIT_COMMIT_ARGS -m "reverse dep: bump $i for $PACKAGE_CATEGORY/$PACKAGE_NAME"
         git push -f -v origin $BRANCH_NAME
 
         # Branch is ready now to open PR
@@ -349,7 +355,7 @@ for i in $(echo "$PKG_LIST" | jq -rc '.packages[]'); do
 
         if [ "${AUTO_GIT}" == "true" ]; then
             git add $PACKAGE_PATH/
-            git commit -m "Bump $PACKAGE_CATEGORY/$PACKAGE_NAME to $LATEST_TAG"
+            git commit $GIT_COMMIT_ARGS -m "Bump $PACKAGE_CATEGORY/$PACKAGE_NAME to $LATEST_TAG"
             git push -f -v origin $BRANCH_NAME
 
             # Branch is ready now to open PR
