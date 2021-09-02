@@ -4,6 +4,7 @@
 {{ $github := index $data "github" }}
 {{ $url := index $data "url" }}
 {{ $description := index $data "description" }}
+{{ $type := index $data "type" }}
 
 <html>
 <head>
@@ -72,7 +73,7 @@ body {
     To enable {{$reponame}} add in /etc/luet/luet.yaml the following:
     <pre><code class="language-yaml">repositories:
   - name: "{{$reponame}}"
-    type: "http"
+    type: "{{$type}}"
     enable: true
     urls:
     - "{{$url}}"</code></pre>

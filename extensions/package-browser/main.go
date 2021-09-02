@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	Version = "0.1"
+	Version = "0.2"
 )
 
 var lock = &sync.Mutex{}
@@ -45,16 +45,19 @@ func refreshRepositories(repos installer.Repositories) (installer.Repositories, 
 	return syncedRepos, nil
 }
 
-func GetRepo(name, url string) (*installer.LuetSystemRepository, error) {
+func GetRepo(name, url, t string) (*installer.LuetSystemRepository, error) {
+	if t == "" {
+		t = "http"
+	}
 	return installer.NewLuetSystemRepositoryFromYaml([]byte(`
 name: "`+name+`"
-type: "http"
+type: "`+t+`"
 urls:
 - "`+url+`"`), pkg.NewInMemoryDatabase(false))
 }
 
 type Repository struct {
-	Name, Url, Github, Description string
+	Name, Url, Type, Github, Description string
 }
 type Meta struct {
 	Repositories []Repository
@@ -109,7 +112,7 @@ func main() {
 
 	repos := installer.Repositories{}
 	for _, r := range metadata.Repositories {
-		repo, err := GetRepo(r.Name, r.Url)
+		repo, err := GetRepo(r.Name, r.Url, r.Type)
 		if err != nil {
 			fmt.Println("Failed getting repo ", repo, err)
 			continue
@@ -118,6 +121,7 @@ func main() {
 		additionalData[r.Name]["github"] = r.Github
 		additionalData[r.Name]["description"] = r.Description
 		additionalData[r.Name]["url"] = r.Url
+		additionalData[r.Name]["type"] = r.Type
 		repos = append(repos, repo)
 	}
 
