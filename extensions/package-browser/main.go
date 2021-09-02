@@ -13,7 +13,7 @@ import (
 
 	config "github.com/mudler/luet/pkg/config"
 
-	"github.com/mudler/luet/pkg/installer"
+	installer "github.com/mudler/luet/pkg/installer"
 	. "github.com/mudler/luet/pkg/logger"
 	pkg "github.com/mudler/luet/pkg/package"
 	"github.com/narqo/go-badge"
@@ -45,7 +45,7 @@ func refreshRepositories(repos installer.Repositories) (installer.Repositories, 
 	return syncedRepos, nil
 }
 
-func GetRepo(name, url string) (installer.Repository, error) {
+func GetRepo(name, url string) (*installer.LuetSystemRepository, error) {
 	return installer.NewLuetSystemRepositoryFromYaml([]byte(`
 name: "`+name+`"
 type: "http"
@@ -246,9 +246,9 @@ func main() {
 		for _, r := range Repositories {
 			if r.GetName() == ctx.Params(":repository") {
 				for _, a := range r.GetIndex() {
-					if a.GetCompileSpec().GetPackage().GetFingerPrint() == find.GetFingerPrint() {
-						ctx.Data["Files"] = a.GetFiles()
-						pack = a.GetCompileSpec().GetPackage() // We get it from compilesec which contains the build timestamp
+					if a.CompileSpec.GetPackage().GetFingerPrint() == find.GetFingerPrint() {
+						ctx.Data["Files"] = a.Files
+						pack = a.CompileSpec.GetPackage() // We get it from compilesec which contains the build timestamp
 					}
 				}
 			}
