@@ -105,8 +105,9 @@ reverse_bump() {
     ver=$(yq r $deffile "${REVDEPYQ_ARGS}version")
     revver=1
 
-    if [[ $ver =~ "${REVBUMP_CHAR}" ]]; then
-        revver=$(echo "$ver" | cut -d"${REVBUMP_CHAR}" -f 2)
+    if echo "$ver" | grep -q "\\${REVBUMP_CHAR}.*\\${REVBUMP_CHAR}" || echo "$ver" | grep -q "\\${REVBUMP_CHAR}" ; then
+        l_ver=${ver%${REVBUMP_CHAR}*}
+        revver=${ver/$l_ver${REVBUMP_CHAR}/}
         revver=$((revver+1))
     fi
     ver=${ver%${REVBUMP_CHAR}*}
