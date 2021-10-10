@@ -90,6 +90,17 @@ extract_portage_files () {
 
   [ "$QUIET" = "0" ] || echo "[${pkg}] Extract portage files..."
 
+  pkgs-checker portage gen-metadata ${pkg} --to "${LUET_PORTAGE_TARGETDIR}" || return 1
+
+  return 0
+}
+
+extract_portage_files_old () {
+  local pkg=$1
+  local do_qtbz2=${2:-0}
+
+  [ "$QUIET" = "0" ] || echo "[${pkg}] Extract portage files..."
+
   local cat=$(pkgs-checker pkg info ${pkg} --json | jq '.category' -r)
   local name=$(pkgs-checker pkg info ${pkg} --json | jq '.name' -r)
   local version=$(pkgs-checker pkg info ${pkg} --json | jq '.version' -r)
