@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"regexp"
 	"sort"
 
 	devkit "github.com/Luet-lab/extensions/extensions/repo-devkit/pkg/devkit"
@@ -67,6 +68,7 @@ func NewPkgsCommand() *cobra.Command {
 			listMissings, _ := cmd.Flags().GetBool("missings")
 			buildOrder, _ := cmd.Flags().GetBool("build-ordered")
 			buildOrderWithResolve, _ := cmd.Flags().GetBool("build-ordered-with-resolve")
+			filters, _ := cmd.Flags().GetStringArray("filter")
 
 			mottainaiProfile, _ := cmd.Flags().GetString("mottainai-profile")
 			mottainaiMaster, _ := cmd.Flags().GetString("mottainai-master")
@@ -171,6 +173,40 @@ func NewPkgsCommand() *cobra.Command {
 				}
 			}
 
+			// Filter packages
+			if len(filters) > 0 {
+				// Create regex
+				listRegex := []*regexp.Regexp{}
+
+				for _, f := range filters {
+					r := regexp.MustCompile(f)
+					if r != nil {
+						listRegex = append(listRegex, r)
+					} else {
+						fmt.Println("WARNING: Regex " + f + " not compiled.")
+					}
+				}
+
+				if len(listRegex) > 0 {
+					filterList := []*luet_pkg.DefaultPackage{}
+					for _, p := range list {
+						toSkip := true
+						for _, r := range listRegex {
+							if r.MatchString(p.GetPackageName()) {
+								toSkip = false
+								break
+							}
+						}
+						if toSkip {
+							continue
+						}
+						filterList = append(filterList, p)
+					}
+
+					list = filterList
+				}
+			}
+
 			if limit > 0 {
 				newList := []*luet_pkg.DefaultPackage{}
 				for _, p := range list {
@@ -235,6 +271,8 @@ func NewPkgsCommand() *cobra.Command {
 		"Use stage4 tree resolving. Slow. To use with --build-ordered.")
 	flags.Bool("json", false, "Show packages in JSON format.")
 	flags.Int32P("limit", "l", 0, "Limit number of packages returned. 0 means no limit.")
+	flags.StringArrayP("filter", "f", []string{},
+		"Define one or more regex filter to match packages.")
 
 	return cmd
 }
