@@ -317,8 +317,6 @@ run_hook() {
   # Cleanup/umount
   umount_rootfs $rootfs
 
-  rm $rootfs/luet
-
   popd
 }
 
