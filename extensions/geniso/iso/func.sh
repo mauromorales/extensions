@@ -177,11 +177,11 @@ EOF
 
   if [ -n "${repositories}" ]; then
     echo "Installing repositories ${repositories} in $rootfs, logs available at ${LUET_GENISO_OUTPUT}"
-    ${SUDO} luet install --config $rootfs/luet.yaml ${repositories} >> ${LUET_GENISO_OUTPUT} 2>&1
+    ${SUDO} luet install --config $rootfs/luet.yaml ${LUET_OPTS} ${repositories} >> ${LUET_GENISO_OUTPUT} 2>&1
   fi
 
   echo "Installing packages ${packages} in $rootfs, logs available at ${LUET_GENISO_OUTPUT}"
-  ${SUDO} luet install --config $rootfs/luet.yaml ${packages} >> ${LUET_GENISO_OUTPUT} 2>&1
+  ${SUDO} luet install --config $rootfs/luet.yaml ${LUET_OPTS} ${packages} >> ${LUET_GENISO_OUTPUT} 2>&1
   ${SUDO} luet cleanup --config $rootfs/luet.yaml
 
   if [[ "$keep_db" != "true" ]]; then
@@ -252,11 +252,11 @@ EOF
 
   if [ -n "${repositories}" ]; then
     echo "Installing repositories ${repositories} in $rootfs, logs available at ${LUET_GENISO_OUTPUT}"
-    ${SUDO} chroot . /luet install --config /luet.yaml ${repositories} >> ${LUET_GENISO_OUTPUT} 2>&1
+    ${SUDO} chroot . /luet install --config /luet.yaml ${LUET_OPTS} ${repositories} >> ${LUET_GENISO_OUTPUT} 2>&1
   fi
 
   echo "Installing packages ${packages} in $rootfs, logs available at ${LUET_GENISO_OUTPUT}"
-  ${SUDO} chroot . /luet install --config /luet.yaml ${packages} >> ${LUET_GENISO_OUTPUT} 2>&1
+  ${SUDO} chroot . /luet install --config /luet.yaml ${LUET_OPTS} ${packages} >> ${LUET_GENISO_OUTPUT} 2>&1
   ${SUDO} chroot . /luet cleanup --config /luet.yaml
 
   if [[ "$keep_db" != "true" ]]; then
