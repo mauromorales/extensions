@@ -1,0 +1,41 @@
+packages:
+  - name: k3s-openrc
+    category: k8s
+    version: "1.25.2"
+    k3s_version: "2"
+    labels:
+      github.owner: "k3s-io"
+      github.repo: "k3s"
+      github.tag: "v1.28.2+k3s1"
+      autobump.strategy: "release_tag"
+      autobump.sed_script: 's/\+k3s1//g'
+    uri:
+      - https://github.com/k3s-io/k3s
+    license: "APL-2"
+    description: " Lightweight Kubernetes "
+  - name: k3s-openrc
+    category: k8s
+    version: "1.26.3"
+    k3s_version: "2"
+    labels:
+      github.owner: "k3s-io"
+      github.repo: "k3s"
+      autobump.strategy: "release"
+      autobump.sed_replace: "s/+k3s1//g"
+    uri:
+      - https://github.com/k3s-io/k3s
+    license: "APL-2"
+    description: " Lightweight Kubernetes "
+  - name: k3s-openrc
+    category: k8s
+    version: "1.27.3"
+    k3s_version: "2"
+    labels:
+      github.owner: "k3s-io"
+      github.repo: "k3s"
+      autobump.strategy: "release"
+      autobump.sed_replace: "s/+k3s1//g"
+    uri:
+      - https://github.com/k3s-io/k3s
+    license: "APL-2"
+    description: " Lightweight Kubernetes "

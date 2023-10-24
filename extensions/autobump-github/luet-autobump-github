@@ -188,6 +188,7 @@ for i in $(echo "$PKG_LIST" | jq -rc '.packages[]'); do
     # Best effort: get original package name from labels
     GITHUB_REPO=$(yq r $DEFINITION_FILE "${YQ_ARGS}labels.\"github.repo\"")
     GITHUB_OWNER=$(yq r $DEFINITION_FILE "${YQ_ARGS}labels.\"github.owner\"")
+    GITHUB_TAG=$(yq r $DEFINITION_FILE "${YQ_ARGS}labels.\"github.tag\"")
 
     # Strategy can be: release, tags or "refs"
     # Refs parses thru git tags
@@ -202,6 +203,9 @@ for i in $(echo "$PKG_LIST" | jq -rc '.packages[]'); do
 
     # A json map of replace rules
     STRING_REPLACE=$(yq r $DEFINITION_FILE "${YQ_ARGS}labels.\"autobump.string_replace\"")
+
+    # A sed script to run after the version has been retrieved
+    SED_REPLACE=$(yq r $DEFINITION_FILE "${YQ_ARGS}labels.\"autobump.sed_script\"")
 
 
     # A json list of strings contained in the releases to skip (e.g. betas)
@@ -280,12 +284,22 @@ for i in $(echo "$PKG_LIST" | jq -rc '.packages[]'); do
         fi
     elif [ "${AUTOBUMP_STRATEGY}" == "sabayon" ]; then
         LATEST_TAG=$(latest_sabayon $ORIGINAL_PACKAGE_NAME $ORIGINAL_PACKAGE_CATEGORY)
+    elif [[ "$AUTOBUMP_STRATEGY" == "release_tag" ]] && [ -n "${GITHUB_OWNER}" ] && [ -n "${GITHUB_REPO}" ] && [ -n "${GITHUB_TAG}" ]; then
+        if [ -n "$TOKEN" ]; then
+            LATEST_TAG=$(curl -H "Authorization: token $TOKEN" https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/tags/$GITHUB_TAG -s | jq .tag_name -r)
+        else
+            LATEST_TAG=$(curl https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/tags/$GITHUB_TAG -s | jq .tag_name -r )
+        fi
     elif [ -n "${GITHUB_OWNER}" ] && [ -n "${GITHUB_REPO}" ]; then
         if [ -n "$TOKEN" ]; then
             LATEST_TAG=$(curl -H "Authorization: token $TOKEN" https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/tags -s | jq -r '.[].name | select(. | test("'$VERSION_CONTAINS'"))' -r | head -1 )
         else
             LATEST_TAG=$(curl https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/tags -s | jq -r '.[].name | select(. | test("'$VERSION_CONTAINS'"))' -r | head -1 )
         fi
+    fi
+
+    if [ -n "$SED_REPLACE" ]; then
+        LATEST_TAG=$(echo "$LATEST_TAG" | sed -r "$SED_REPLACE")
     fi
 
     ORIGINAL_NEW_TAG=${LATEST_TAG}
