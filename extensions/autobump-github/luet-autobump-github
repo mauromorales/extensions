@@ -45,19 +45,19 @@ YQ_RELEASE="${YQ_RELEASE:-3.3.4}"
 HUB_RELEASE="${HUB_RELEASE:-2.14.2}"
 
 hash jq 2>/dev/null || {
-    mkdir $ROOT_DIR/.bin/;
+    mkdir -p $ROOT_DIR/.bin/;
     wget https://github.com/stedolan/jq/releases/download/jq-${JQ_RELEASE}/jq-linux64 -O $ROOT_DIR/.bin/jq
     chmod +x $ROOT_DIR/.bin/jq
 }
 
 hash yq 2>/dev/null || {
-    mkdir $ROOT_DIR/.bin/;
+    mkdir -p $ROOT_DIR/.bin/;
     wget https://github.com/mikefarah/yq/releases/download/${YQ_RELEASE}/yq_linux_amd64 -O $ROOT_DIR/.bin/yq
     chmod +x $ROOT_DIR/.bin/yq
 }
 
 hash hub 2>/dev/null || {
-    mkdir $ROOT_DIR/.bin/;
+    mkdir -p $ROOT_DIR/.bin/;
     wget https://github.com/github/hub/releases/download/v${HUB_RELEASE}/hub-linux-amd64-${HUB_RELEASE}.tgz -O $ROOT_DIR/.bin/hub
     chmod +x $ROOT_DIR/.bin/hub
 }
