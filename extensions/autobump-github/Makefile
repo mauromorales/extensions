@@ -12,4 +12,5 @@ install: build
 
 test:
 	TREE_DIR=test_packages FAIL_ON_ERROR=true ./luet-autobump-github
+	BASE_DIRECTORY="test_packages" ./validate_yaml_files.sh
 	git checkout test_packages
