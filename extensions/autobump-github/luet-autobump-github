@@ -309,7 +309,7 @@ for i in $(echo "$PKG_LIST" | jq -rc '.packages[]'); do
 
     [[ "$LATEST_TAG" == "null" ]] && LATEST_TAG=
     # versions are mismatching. Bump the version
-    if [ -n "$LATEST_TAG" ] && [ $LATEST_TAG != "$STRIPPED_PACKAGE_VERSION" ] ; then
+    if [ -n "$LATEST_TAG" ] && [ "$LATEST_TAG" != "$STRIPPED_PACKAGE_VERSION" ] ; then
         echo "Bumping $PACKAGE_CATEGORY/$PACKAGE_NAME to $LATEST_TAG"
 
         BRANCH_NAME="bump_${PACKAGE_NAME}_${PACKAGE_CATEGORY}"
