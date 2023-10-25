@@ -1,6 +1,6 @@
 name: "golang"
 category: "build"
-version: 1.16.6+7
+version: "1.21.3"
 base_url: https://golang.org/dl
 hidden: true # No need to make it installable for now
 labels:
@@ -12,6 +12,6 @@ labels:
     echo "1.21.3"
   autobump.version_hook: |
     echo "1.21.3"
-  package.version: "1.16.6"
+  package.version: "1.21.3"
   autobump.checksum_hook: "curl -q -L https://storage.googleapis.com/golang/go{{.Values.labels.package.version}}.linux-amd64.tar.gz.sha256"
-  package.checksum: "be333ef18b3016e9d7cb7b1ff1fdb0cac800ca0be4cf2290fe613b3d069dfe0d"
+  package.checksum: "1241381b2843fae5a9707eec1f8fb2ef94d827990582c7c7c32f5bdfbfd420c8"
