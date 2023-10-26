@@ -254,19 +254,7 @@ for i in $(echo "$PKG_LIST" | jq -rc '.packages[]'); do
 
     SNAPSHOT_PREFIX=${AUTOBUMP_REFIX:-0.}
 
-    if [[ "$AUTOBUMP_STRATEGY" == "release" ]] && [ -n "${GITHUB_OWNER}" ] && [ -n "${GITHUB_REPO}" ]; then
-        if [ -n "$TOKEN" ]; then
-            LATEST_TAG=$(curl -H "Authorization: token $TOKEN" https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest -s | jq .tag_name -r)
-        else
-            LATEST_TAG=$(curl https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest -s | jq .tag_name -r)
-        fi
-    elif [[ "$AUTOBUMP_STRATEGY" == "refs" ]] &&  [ -n "${GITHUB_OWNER}" ] && [ -n "${GITHUB_REPO}" ]; then
-        if [ -n "$TOKEN" ]; then
-            LATEST_TAG=$(curl -H "Authorization: token $TOKEN" https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/git/refs/tags -s | jq '.[].ref | sub("refs\/tags\/"; "") | select(. | test("'$VERSION_CONTAINS'"))' -r | tail -n1 )
-        else
-            LATEST_TAG=$(curl https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/git/refs/tags -s | jq '.[].ref | sub("refs\/tags\/"; "") | select(. | test("'$VERSION_CONTAINS'"))' -r | tail -n1 )
-        fi
-    elif [[ "$AUTOBUMP_STRATEGY" == "snapshot" ]] || [[ "$AUTOBUMP_STRATEGY" == "git_hash" ]]; then
+    if [[ "$AUTOBUMP_STRATEGY" == "snapshot" ]] || [[ "$AUTOBUMP_STRATEGY" == "git_hash" ]]; then
         LATEST_TAG=${SNAPSHOT_PREFIX}$(date +%Y%m%d)
     elif [[ "$AUTOBUMP_STRATEGY" == "custom" ]]; then
         VERSION_HOOK=$(yq r $DEFINITION_FILE "${YQ_ARGS}labels.\"autobump.version_hook\"")
@@ -284,18 +272,6 @@ for i in $(echo "$PKG_LIST" | jq -rc '.packages[]'); do
         fi
     elif [ "${AUTOBUMP_STRATEGY}" == "sabayon" ]; then
         LATEST_TAG=$(latest_sabayon $ORIGINAL_PACKAGE_NAME $ORIGINAL_PACKAGE_CATEGORY)
-    elif [[ "$AUTOBUMP_STRATEGY" == "release_tag" ]] && [ -n "${GITHUB_OWNER}" ] && [ -n "${GITHUB_REPO}" ] && [ -n "${GITHUB_TAG}" ]; then
-        if [ -n "$TOKEN" ]; then
-            LATEST_TAG=$(curl -H "Authorization: token $TOKEN" https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/tags/$GITHUB_TAG -s | jq .tag_name -r)
-        else
-            LATEST_TAG=$(curl https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/tags/$GITHUB_TAG -s | jq .tag_name -r )
-        fi
-    elif [ -n "${GITHUB_OWNER}" ] && [ -n "${GITHUB_REPO}" ]; then
-        if [ -n "$TOKEN" ]; then
-            LATEST_TAG=$(curl -H "Authorization: token $TOKEN" https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/tags -s | jq -r '.[].name | select(. | test("'$VERSION_CONTAINS'"))' -r | head -1 )
-        else
-            LATEST_TAG=$(curl https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/tags -s | jq -r '.[].name | select(. | test("'$VERSION_CONTAINS'"))' -r | head -1 )
-        fi
     fi
 
     if [ -n "$SED_REPLACE" ]; then
