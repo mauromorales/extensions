@@ -38,18 +38,11 @@ func PrintInfo(p *types.Package) {
 }
 
 func GetGithubTag(p *types.Package) (string, error) {
-	apiUrl, _ := url.JoinPath("https://api.github.com/repos", p.Labels["github.owner"], p.Labels["github.repo"], "tags")
-	response, err := http.Get(apiUrl)
+	apiUrl, err := url.JoinPath("https://api.github.com/repos", p.Labels["github.owner"], p.Labels["github.repo"], "tags")
 	if err != nil {
 		return "", err
 	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("API request returned non-200 status code: %d\n", response.StatusCode)
-	}
-
-	responseBody, err := io.ReadAll(response.Body)
+	responseBody, err := getGitHubAPI(apiUrl)
 	if err != nil {
 		return "", err
 	}
@@ -75,6 +68,36 @@ func GetGithubTag(p *types.Package) (string, error) {
 		}
 	}
 	return latestTag, nil
+}
+
+func getGitHubAPI(url string) ([]byte, error) {
+	client := &http.Client{}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	token := os.Getenv("TOKEN")
+	if token != "" {
+		req.Header.Set("Authorization", fmt.Sprintf("token %s", token))
+	}
+
+	response, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("API request returned non-200 status code: %d\n", response.StatusCode)
+	}
+
+	responseBody, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+	return responseBody, nil
 }
 
 func NewDefinition(path string) (*Definition, error) {
