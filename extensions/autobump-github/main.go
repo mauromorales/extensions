@@ -37,7 +37,26 @@ func PrintInfo(p *types.Package) {
 	fmt.Printf("- Consider only if version contains: %s\n", p.Labels["autobump.version_contains"])
 }
 
-func GetGithubTag(p *types.Package) (string, error) {
+func GetGitHubRelease(p *types.Package) (string, error) {
+	apiUrl, err := url.JoinPath("https://api.github.com/repos", p.Labels["github.owner"], p.Labels["github.repo"], "releases", "latest")
+	if err != nil {
+		return "", err
+	}
+	responseBody, err := getGitHubAPI(apiUrl)
+	if err != nil {
+		return "", err
+	}
+
+	var data GithubRelease
+
+	if err := json.Unmarshal(responseBody, &data); err != nil {
+		return "", err
+	}
+
+	return data.TagName, nil
+}
+
+func GetGitHubTag(p *types.Package) (string, error) {
 	apiUrl, err := url.JoinPath("https://api.github.com/repos", p.Labels["github.owner"], p.Labels["github.repo"], "tags")
 	if err != nil {
 		return "", err
@@ -47,10 +66,8 @@ func GetGithubTag(p *types.Package) (string, error) {
 		return "", err
 	}
 
-	// Create a variable to store the data
 	var data []GithubTag
 
-	// Unmarshal the JSON response into your data structure
 	if err := json.Unmarshal(responseBody, &data); err != nil {
 		return "", err
 	}
@@ -131,6 +148,10 @@ type GithubTag struct {
 	Name string `json:"name"`
 }
 
+type GithubRelease struct {
+	TagName string `json:"tag_name"`
+}
+
 func yqReplace(file, key, value string) {
 	utils.RunSH("", fmt.Sprintf("yq w -i %s %s %s --style double", file, key, value))
 }
@@ -157,7 +178,14 @@ func main() {
 			}
 			PrintInfo(definition.Package)
 
-			latestTag, err := GetGithubTag(definition.Package)
+			latestTag := ""
+			switch definition.Package.Labels["autobump.strategy"] {
+			case "release":
+				latestTag, err = GetGitHubRelease(definition.Package)
+			default:
+				latestTag, err = GetGitHubTag(definition.Package)
+			}
+
 			latestVersion := strings.Replace(latestTag, "v", "", 1)
 
 			fmt.Printf("Latest version found for %s is: %s. Current at %s\n", definition.Package.Name, latestVersion, definition.Package.Version)
