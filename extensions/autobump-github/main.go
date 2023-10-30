@@ -56,6 +56,39 @@ func GetGitHubRelease(p *types.Package) (string, error) {
 	return data.TagName, nil
 }
 
+func GetGitHubRefs(p *types.Package) (string, error) {
+	apiUrl, err := url.JoinPath("https://api.github.com/repos", p.Labels["github.owner"], p.Labels["github.repo"], "git", "refs", "tags")
+	if err != nil {
+		return "", err
+	}
+	responseBody, err := getGitHubAPI(apiUrl)
+	if err != nil {
+		return "", err
+	}
+
+	var data []GitHubRef
+
+	if err := json.Unmarshal(responseBody, &data); err != nil {
+		return "", err
+	}
+
+	latestTag := ""
+	for _, item := range data {
+		ref := strings.Replace(item.Ref, "refs/tags/", "", 1)
+
+		if p.Labels["autobump.version_contains"] != "" {
+			if ref == p.Labels["autobump.version_contains"] {
+				latestTag = ref
+			}
+		} else {
+			if semver.Compare(ref, latestTag) > 0 {
+				latestTag = ref
+			}
+		}
+	}
+	return latestTag, nil
+}
+
 func GetGitHubTag(p *types.Package) (string, error) {
 	apiUrl, err := url.JoinPath("https://api.github.com/repos", p.Labels["github.owner"], p.Labels["github.repo"], "tags")
 	if err != nil {
@@ -66,7 +99,7 @@ func GetGitHubTag(p *types.Package) (string, error) {
 		return "", err
 	}
 
-	var data []GithubTag
+	var data []GitHubTag
 
 	if err := json.Unmarshal(responseBody, &data); err != nil {
 		return "", err
@@ -144,12 +177,16 @@ func readDefinitionFile(pkg *types.Package, path string) error {
 	return nil
 }
 
-type GithubTag struct {
+type GitHubTag struct {
 	Name string `json:"name"`
 }
 
 type GithubRelease struct {
 	TagName string `json:"tag_name"`
+}
+
+type GitHubRef struct {
+	Ref string `json:"ref"`
 }
 
 func yqReplace(file, key, value string) {
@@ -182,6 +219,8 @@ func main() {
 			switch definition.Package.Labels["autobump.strategy"] {
 			case "release":
 				latestTag, err = GetGitHubRelease(definition.Package)
+			case "refs":
+				latestTag, err = GetGitHubRefs(definition.Package)
 			default:
 				latestTag, err = GetGitHubTag(definition.Package)
 			}
