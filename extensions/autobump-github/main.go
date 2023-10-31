@@ -282,10 +282,55 @@ func skipIfContains(p *types.Package, version string) bool {
 	return false
 }
 
+func installDependencies() error {
+	rootDir := os.Getenv("ROOT_DIR")
+	if rootDir == "" {
+		wd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		rootDir = wd
+	}
+
+	jqRelease := os.Getenv("JQ_RELEASE")
+	if jqRelease == "" {
+		jqRelease = "1.6"
+	}
+	qyRelease := os.Getenv("YQ_RELEASE")
+	if qyRelease == "" {
+		qyRelease = "3.3.4"
+	}
+	hubRelease := os.Getenv("HUB_RELEASE")
+	if hubRelease == "" {
+		hubRelease = "2.14.2"
+	}
+
+	err := utils.RunSH("", fmt.Sprintf("hash jq 2>/dev/null || {\n    mkdir -p %s/.bin/;\n    wget https://github.com/stedolan/jq/releases/download/jq-%s/jq-linux64 -O %s/.bin/jq\n    chmod +x %s/.bin/jq\n}", rootDir, jqRelease, rootDir, rootDir))
+	if err != nil {
+		return err
+	}
+	err = utils.RunSH("", fmt.Sprintf("hash yq 2>/dev/null || {\n    mkdir -p %s/.bin/;\n    wget https://github.com/mikefarah/yq/releases/download/%s/yq_linux_amd64 -O %s/.bin/yq\n    chmod +x %s/.bin/yq\n}", rootDir, qyRelease, rootDir, rootDir))
+	if err != nil {
+		return err
+	}
+	err = utils.RunSH("", fmt.Sprintf("hash hub 2>/dev/null || {\n    mkdir -p %s/.bin/;\n    wget https://github.com/github/hub/releases/download/v%s/hub-linux-amd64-%s.tgz -O %s/.bin/hub\n    chmod +x %s/.bin/hub\n}", rootDir, hubRelease, hubRelease, rootDir, rootDir))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func main() {
 	failOnError := false
 	if os.Getenv("FAIL_ON_ERROR") == "true" {
 		failOnError = true
+	}
+
+	err := installDependencies()
+	if err != nil {
+		fmt.Println("Error:", err)
+		os.Exit(1)
 	}
 
 	treeDir := os.Getenv("TREE_DIR")
