@@ -260,6 +260,28 @@ func replace(p *types.Package, version string) (string, error) {
 	return version, nil
 }
 
+func skipIfContains(p *types.Package, version string) bool {
+	skipIfContains := p.Labels["autobump.skip_if_contains"]
+	if skipIfContains == "" {
+		return false
+	}
+
+	var data []string
+
+	if err := json.Unmarshal([]byte(skipIfContains), &data); err != nil {
+		return false
+	}
+
+	for _, exp := range data {
+		if strings.Contains(version, exp) {
+			fmt.Println("Skipping because latest release contains: ", exp)
+			return true
+		}
+	}
+
+	return false
+}
+
 func main() {
 	failOnError := false
 	if os.Getenv("FAIL_ON_ERROR") == "true" {
@@ -329,7 +351,7 @@ func main() {
 				return
 			}
 
-			if !updateSrc {
+			if !updateSrc || skipIfContains(definition.Package, latestTag) {
 				continue
 			}
 
