@@ -359,7 +359,14 @@ func main() {
 				continue
 			}
 
-			latestVersion := strings.Replace(latestTag, "v", "", 1)
+			latestVersion := latestTag
+
+			trimPrefix := definition.Package.Labels["autobump.trim_prefix"]
+			if trimPrefix != "" {
+				latestVersion = strings.TrimPrefix(latestVersion, trimPrefix)
+			} else {
+				latestVersion = strings.Replace(latestVersion, "v", "", 1)
+			}
 
 			fmt.Printf("Latest version found for %s is: %s. Current at %s\n", definition.Package.Name, latestVersion, definition.Package.Version)
 
