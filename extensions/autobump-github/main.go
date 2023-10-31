@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type Definition struct {
@@ -87,6 +88,48 @@ func GetGitHubRefs(p *types.Package) (string, error) {
 		}
 	}
 	return latestTag, nil
+}
+
+func GetGitHubHeads(p *types.Package) (string, error) {
+	branch := "master"
+	if p.Labels["github.branch"] != "" {
+		branch = p.Labels["github.branch"]
+	}
+	apiUrl, err := url.JoinPath("https://api.github.com/repos", p.Labels["github.owner"], p.Labels["github.repo"], "git", "refs", "heads", branch)
+	if err != nil {
+		return "", err
+	}
+	responseBody, err := getGitHubAPI(apiUrl)
+	if err != nil {
+		return "", err
+	}
+
+	var data GitHubRef
+
+	if err := json.Unmarshal(responseBody, &data); err != nil {
+		return "", err
+	}
+
+	return data.Object.Sha, nil
+}
+
+func GetGitHubReleaseTag(p *types.Package) (string, error) {
+	apiUrl, err := url.JoinPath("https://api.github.com/repos", p.Labels["github.owner"], p.Labels["github.repo"], "releases", "tags", p.Labels["github.tag"])
+	if err != nil {
+		return "", err
+	}
+	responseBody, err := getGitHubAPI(apiUrl)
+	if err != nil {
+		return "", err
+	}
+
+	var data GithubRelease
+
+	if err := json.Unmarshal(responseBody, &data); err != nil {
+		return "", err
+	}
+
+	return data.TagName, nil
 }
 
 func GetGitHubTag(p *types.Package) (string, error) {
@@ -186,7 +229,10 @@ type GithubRelease struct {
 }
 
 type GitHubRef struct {
-	Ref string `json:"ref"`
+	Ref    string `json:"ref"`
+	Object struct {
+		Sha string `json:"sha"`
+	} `json:"object"`
 }
 
 func yqReplace(file, key, value string) {
@@ -215,14 +261,28 @@ func main() {
 			}
 			PrintInfo(definition.Package)
 
+			updateSrc := true
 			latestTag := ""
 			switch definition.Package.Labels["autobump.strategy"] {
 			case "release":
 				latestTag, err = GetGitHubRelease(definition.Package)
 			case "refs":
 				latestTag, err = GetGitHubRefs(definition.Package)
+			case "git_hash":
+				updateSrc = false
+				currentTime := time.Now()
+				formattedTime := currentTime.Format("20060102")
+				yqReplace(filepath.Join(definition.Path, "definition.yaml"), "version", formattedTime)
+				latestTag, err = GetGitHubHeads(definition.Package)
+				yqReplace(filepath.Join(definition.Path, "definition.yaml"), "labels.\\\"git.hash\\\"", latestTag)
+			case "release_tag":
+				latestTag, err = GetGitHubReleaseTag(definition.Package)
 			default:
 				latestTag, err = GetGitHubTag(definition.Package)
+			}
+
+			if !updateSrc {
+				return
 			}
 
 			latestVersion := strings.Replace(latestTag, "v", "", 1)

@@ -1,0 +1,9 @@
+name: "extensions"
+category: "build"
+version: "20200103"
+labels:
+  github.repo: "extensions"
+  github.owner: "luet-lab"
+  git.hash: "abcd"
+  autobump.strategy: "git_hash"
+  autobump.git.branch: "master"
