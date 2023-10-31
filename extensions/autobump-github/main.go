@@ -319,6 +319,10 @@ func main() {
 				continue
 			}
 			PrintInfo(definition.Package)
+			if definition.Package.Labels["autobump.ignore"] == "1" {
+				fmt.Printf("Ignoring package: %s\n", definition.Package.Name)
+				continue
+			}
 
 			updateSrc := true
 			latestTag := ""
