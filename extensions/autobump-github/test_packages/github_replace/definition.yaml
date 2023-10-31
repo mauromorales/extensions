@@ -1,0 +1,14 @@
+name: k3s-openrc
+category: k8s
+version: "1.20.0"
+k3s_version: "2"
+labels:
+  github.owner: "k3s-io"
+  github.repo: "k3s"
+  github.tag: "v1.28.2+k3s1"
+  autobump.strategy: "release_tag"
+  autobump.string_replace: '{ "\\+k3s\\d": "" }'
+uri:
+  - https://github.com/k3s-io/k3s
+license: "APL-2"
+description: " Lightweight Kubernetes "

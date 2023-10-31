@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -35,7 +36,7 @@ func PrintInfo(p *types.Package) {
 	fmt.Printf("- Prefix trim: %s\n", p.Labels["autobump.trim_prefix"])
 	fmt.Printf("- String replace: %s\n", p.Labels["autobump.string_replace"])
 	fmt.Printf("- Skip if contains: %s\n", p.Labels["autobump.skip_if_contains"])
-	fmt.Printf("- Consider only if version contains: %s\n", p.Labels["autobump.version_contains"])
+	fmt.Printf("- Consider only if version contains: %s\n\n", p.Labels["autobump.version_contains"])
 }
 
 func GetGitHubRelease(p *types.Package) (string, error) {
@@ -239,21 +240,57 @@ func yqReplace(file, key, value string) {
 	utils.RunSH("", fmt.Sprintf("yq w -i %s %s %s --style double", file, key, value))
 }
 
+func replace(p *types.Package, version string) (string, error) {
+	var data map[string]string
+	stringReplace := p.Labels["autobump.string_replace"]
+	if stringReplace == "" {
+		return version, nil
+	}
+
+	if err := json.Unmarshal([]byte(stringReplace), &data); err != nil {
+		return "", err
+	}
+
+	for exp, with := range data {
+		fmt.Printf("Replacing %s with %s\n", exp, with)
+		var re = regexp.MustCompile(exp)
+		version = re.ReplaceAllString(version, with)
+	}
+
+	return version, nil
+}
+
 func main() {
+	failOnError := false
+	if os.Getenv("FAIL_ON_ERROR") == "true" {
+		failOnError = true
+	}
+
 	treeDir := os.Getenv("TREE_DIR")
 	if treeDir == "" {
 		fmt.Println("TREE_DIR is not set")
+
+		if failOnError {
+			os.Exit(1)
+		}
+
 		return
 	}
 
 	entries, err := os.ReadDir(treeDir)
 	if err != nil {
 		fmt.Println("Error:", err)
+
+		if failOnError {
+			os.Exit(1)
+		}
+
 		return
 	}
 
 	for _, entry := range entries {
 		if entry.IsDir() {
+			// TODO: handle collections
 			definition, err := NewDefinition(filepath.Join(treeDir, entry.Name()))
 			if err != nil {
 				fmt.Println("Error:", err)
@@ -281,8 +318,19 @@ func main() {
 				latestTag, err = GetGitHubTag(definition.Package)
 			}
 
-			if !updateSrc {
+			latestTag, err = replace(definition.Package, latestTag)
+			if err != nil {
+				fmt.Println("Error:", err)
+
+				if failOnError {
+					os.Exit(1)
+				}
+
 				return
+			}
+
+			if !updateSrc {
+				continue
 			}
 
 			latestVersion := strings.Replace(latestTag, "v", "", 1)
