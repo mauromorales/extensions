@@ -327,11 +327,11 @@ func main() {
 		failOnError = true
 	}
 
-	err := installDependencies()
-	if err != nil {
-		fmt.Println("Error:", err)
-		os.Exit(1)
-	}
+	// err := installDependencies()
+	// if err != nil {
+	// 	fmt.Println("Error:", err)
+	// 	os.Exit(1)
+	// }
 
 	treeDir := os.Getenv("TREE_DIR")
 	if treeDir == "" {
@@ -343,91 +343,96 @@ func main() {
 
 		return
 	}
-
-	entries, err := os.ReadDir(treeDir)
+	cmd := fmt.Sprintf("luet tree pkglist --tree %s -o json", treeDir)
+	pkgJson, err := utils.RunSHOUT("", cmd)
 	if err != nil {
 		fmt.Println("Error:", err)
-
-		if failOnError {
-			os.Exit(1)
-		}
-
-		return
+		os.Exit(1)
+	}
+	var luetOutput struct {
+		Packages types.Packages `json:"packages"`
+	}
+	if err := json.Unmarshal(pkgJson, &luetOutput); err != nil {
+		fmt.Println("Error:", err)
+		os.Exit(1)
 	}
 
-	for _, entry := range entries {
-		if entry.IsDir() {
-			// TODO: handle collections
-			definition, err := NewDefinition(filepath.Join(treeDir, entry.Name()))
-			if err != nil {
-				fmt.Println("Error:", err)
-				continue
-			}
-			PrintInfo(definition.Package)
-			if definition.Package.Labels["autobump.ignore"] == "1" {
-				fmt.Printf("Ignoring package: %s\n", definition.Package.Name)
-				continue
-			}
+	for _, entry := range luetOutput.Packages {
 
-			updateSrc := true
-			latestTag := ""
-			switch definition.Package.Labels["autobump.strategy"] {
-			case "release":
-				latestTag, err = GetGitHubRelease(definition.Package)
-			case "refs":
-				latestTag, err = GetGitHubRefs(definition.Package)
-			case "git_hash":
-				updateSrc = false
-				currentTime := time.Now()
-				formattedTime := currentTime.Format("20060102")
-				yqReplace(filepath.Join(definition.Path, "definition.yaml"), "version", formattedTime)
-				latestTag, err = GetGitHubHeads(definition.Package)
-				yqReplace(filepath.Join(definition.Path, "definition.yaml"), "labels.\\\"git.hash\\\"", latestTag)
-			case "release_tag":
-				latestTag, err = GetGitHubReleaseTag(definition.Package)
-			default:
-				latestTag, err = GetGitHubTag(definition.Package)
-			}
-
-			latestTag, err = replace(definition.Package, latestTag)
-			if err != nil {
-				fmt.Println("Error:", err)
-
-				if failOnError {
-					os.Exit(1)
-				}
-
-				return
-			}
-
-			if !updateSrc || skipIfContains(definition.Package, latestTag) {
-				continue
-			}
-
-			latestVersion := latestTag
-
-			trimPrefix := definition.Package.Labels["autobump.trim_prefix"]
-			if trimPrefix != "" {
-				latestVersion = strings.TrimPrefix(latestVersion, trimPrefix)
-			} else {
-				latestVersion = strings.Replace(latestVersion, "v", "", 1)
-			}
-
-			fmt.Printf("Latest version found for %s is: %s. Current at %s\n", definition.Package.Name, latestVersion, definition.Package.Version)
-
-			switch semver.Compare(definition.Package.Version, latestTag) {
-			case -1:
-				fmt.Printf("Bumping %s/%s to %s\n", definition.Package.Category, definition.Package.Name, latestVersion)
-				if definition.Package.Labels["autobump.strategy"] == "github_tag" {
-					yqReplace(filepath.Join(definition.Path, "definition.yaml"), "labels.\\\"github.tag\\\"", latestTag)
-				}
-				yqReplace(filepath.Join(definition.Path, "definition.yaml"), "version", latestVersion)
-			case 0:
-				fmt.Println("Up to date")
-			case 1:
-				fmt.Println("Newer version installed")
-			}
+		_, err := os.ReadFile(filepath.Join(entry.Path, "collection.yaml"))
+		if err == nil {
+			fmt.Println("Skipping collection:", entry.Name)
+			continue
 		}
 
+		definition, err := NewDefinition(entry.Path)
+		if err != nil {
+			fmt.Println("Error:", err)
+			continue
+		}
+		PrintInfo(definition.Package)
+		if definition.Package.Labels["autobump.ignore"] == "1" {
+			fmt.Printf("Ignoring package: %s\n", definition.Package.Name)
+			continue
+		}
+
+		updateSrc := true
+		latestTag := ""
+		switch definition.Package.Labels["autobump.strategy"] {
+		case "release":
+			latestTag, err = GetGitHubRelease(definition.Package)
+		case "refs":
+			latestTag, err = GetGitHubRefs(definition.Package)
+		case "git_hash":
+			updateSrc = false
+			currentTime := time.Now()
+			formattedTime := currentTime.Format("20060102")
+			yqReplace(filepath.Join(definition.Path, "definition.yaml"), "version", formattedTime)
+			latestTag, err = GetGitHubHeads(definition.Package)
+			yqReplace(filepath.Join(definition.Path, "definition.yaml"), "labels.\\\"git.hash\\\"", latestTag)
+		case "release_tag":
+			latestTag, err = GetGitHubReleaseTag(definition.Package)
+		default:
+			latestTag, err = GetGitHubTag(definition.Package)
+		}
+
+		latestTag, err = replace(definition.Package, latestTag)
+		if err != nil {
+			fmt.Println("Error:", err)
+
+			if failOnError {
+				os.Exit(1)
+			}
+
+			return
+		}
+
+		if !updateSrc || skipIfContains(definition.Package, latestTag) {
+			continue
+		}
+
+		latestVersion := latestTag
+
+		trimPrefix := definition.Package.Labels["autobump.trim_prefix"]
+		if trimPrefix != "" {
+			latestVersion = strings.TrimPrefix(latestVersion, trimPrefix)
+		} else {
+			latestVersion = strings.Replace(latestVersion, "v", "", 1)
+		}
+
+		fmt.Printf("Latest version found for %s is: %s. Current at %s\n", definition.Package.Name, latestVersion, definition.Package.Version)
+
+		switch semver.Compare(definition.Package.Version, latestTag) {
+		case -1:
+			fmt.Printf("Bumping %s/%s to %s\n", definition.Package.Category, definition.Package.Name, latestVersion)
+			if definition.Package.Labels["autobump.strategy"] == "github_tag" {
+				yqReplace(filepath.Join(definition.Path, "definition.yaml"), "labels.\\\"github.tag\\\"", latestTag)
+			}
+			yqReplace(filepath.Join(definition.Path, "definition.yaml"), "version", latestVersion)
+		case 0:
+			fmt.Println("Up to date")
+		case 1:
+			fmt.Println("Newer version installed")
+		}
 	}
 }
